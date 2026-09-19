@@ -1,0 +1,16 @@
+﻿FROM node:20-alpine
+
+WORKDIR /app
+
+# Native build tools for node modules
+RUN apk add --no-cache python3 make g++
+
+COPY package*.json ./
+RUN npm ci --omit=dev
+
+COPY . .
+
+# Vercel routes traffic on the PORT env variable (defaults to 80 or 8080)
+EXPOSE 8080
+
+CMD ["node", "server.js"]
