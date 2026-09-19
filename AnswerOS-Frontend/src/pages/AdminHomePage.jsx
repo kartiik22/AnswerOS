@@ -44,6 +44,16 @@ ChartJS.register(
   Filler
 );
 
+// Moving Wheel Loader (radial rotating glowing wheel)
+function MovingWheelLoader({ size = "md", label = "Loading telemetry..." }) {
+  return (
+    <div className="moving-wheel-loader-container">
+      <div className={"moving-wheel-spinner " + (size !== "md" ? size : "")} />
+      {label && <div className="moving-wheel-text">{label}</div>}
+    </div>
+  );
+}
+
 export default function AdminHomePage() {
   const { user } = useSelector((state) => state.auth);
   const dispatch = useDispatch();
@@ -547,10 +557,14 @@ export default function AdminHomePage() {
                 {msgDensity.toFixed(1)}/conv
               </span>
             </div>
-            <div className="kpi-value">
-              {totalConv}
-              <span className="unit">conv</span>
-            </div>
+            {loading ? (
+              <MovingWheelLoader size="sm" label="Syncing sessions..." />
+            ) : (
+              <>
+                <div className="kpi-value">
+                  {totalConv}
+                  <span className="unit">conv</span>
+                </div>
             <span className="kpi-delta flat" style={{ color: "var(--text-dim)" }}>
               {totalMsgs.toLocaleString()} messages total
             </span>
@@ -561,6 +575,8 @@ export default function AdminHomePage() {
                 return <div key={i} className="bar" style={{ height: `${h}px`, background: "#5eead4" }}></div>;
               })}
             </div>
+              </>
+            )}
           </div>
 
           {/* Row 1, Col 4: Avg CSAT Rating */}
@@ -628,9 +644,13 @@ export default function AdminHomePage() {
                 ${totalCost.toFixed(2)}
               </span>
             </div>
-            <div className="kpi-value">
-              {(totalTokens / 1000).toFixed(1)}k<span className="unit">tok</span>
-            </div>
+            {loading ? (
+              <MovingWheelLoader size="sm" label="Auditing tokens..." />
+            ) : (
+              <>
+                <div className="kpi-value">
+                  {(totalTokens / 1000).toFixed(1)}k<span className="unit">tok</span>
+                </div>
             <span className="kpi-delta flat" style={{ color: "var(--text-dim)" }}>
               ${(totalCost / Math.max(1, totalConv)).toFixed(4)}/conv
             </span>
@@ -641,6 +661,8 @@ export default function AdminHomePage() {
                 return <div key={i} className="bar" style={{ height: `${h}px`, background: "#fbbf24" }}></div>;
               })}
             </div>
+              </>
+            )}
           </div>
 
           {/* Row 2, Col 2: Resolution Rate (right below Conversations & Messages) */}
@@ -744,10 +766,14 @@ export default function AdminHomePage() {
                 <span className="pulse-dot-mini"></span> LIVE
               </span>
             </div>
-            <div className="kpi-value">
-              {(totalMsgs / Math.max(1, currentRows.length)).toFixed(0)}
-              <span className="unit">queries/day</span>
-            </div>
+            {loading ? (
+              <MovingWheelLoader size="sm" label="Measuring throughput..." />
+            ) : (
+              <>
+                <div className="kpi-value">
+                  {(totalMsgs / Math.max(1, currentRows.length)).toFixed(0)}
+                  <span className="unit">queries/day</span>
+                </div>
             <span className="kpi-delta up">
               ✓ {failingDocs.length === 0 ? "100% healthy documents" : `${failingDocs.length} failing tracked`}
             </span>
@@ -758,6 +784,8 @@ export default function AdminHomePage() {
                 return <div key={i} className="bar" style={{ height: `${h}px`, background: "#60a5fa" }}></div>;
               })}
             </div>
+              </>
+            )}
           </div>
         </div>
 
@@ -780,7 +808,7 @@ export default function AdminHomePage() {
               </div>
             </div>
             <div className="chart-box">
-              <Line data={throughputData} options={{ responsive: true, maintainAspectRatio: false, scales: commonScales }} />
+              {loading ? <MovingWheelLoader size="lg" label="Rendering traffic volume curves..." /> : <Line data={throughputData} options={{ responsive: true, maintainAspectRatio: false, scales: commonScales }} />}
             </div>
           </div>
 
@@ -798,7 +826,7 @@ export default function AdminHomePage() {
               </div>
             </div>
             <div className="chart-box">
-              <Bar data={costData} options={{ responsive: true, maintainAspectRatio: false, scales: commonScales }} />
+              {loading ? <MovingWheelLoader size="lg" label="Plotting token consumption metrics..." /> : <Bar data={costData} options={{ responsive: true, maintainAspectRatio: false, scales: commonScales }} />}
             </div>
           </div>
         </div>
@@ -837,7 +865,7 @@ export default function AdminHomePage() {
               </div>
             </div>
             <div className="chart-box">
-              <Bar data={hallucData} options={{ responsive: true, maintainAspectRatio: false, scales: commonScales }} />
+              {loading ? <MovingWheelLoader size="lg" label="Calculating hallucination distribution..." /> : <Bar data={hallucData} options={{ responsive: true, maintainAspectRatio: false, scales: commonScales }} />}
             </div>
           </div>
         </div>
@@ -918,7 +946,13 @@ export default function AdminHomePage() {
                 </tr>
               </thead>
               <tbody>
-                {failingDocs.length === 0 ? (
+                {loading ? (
+                  <tr>
+                    <td colSpan={8} style={{ padding: "40px 10px", textAlign: "center" }}>
+                      <MovingWheelLoader size="md" label="Auditing knowledge base document health..." />
+                    </td>
+                  </tr>
+                ) : failingDocs.length === 0 ? (
                   <tr>
                     <td colSpan={8} style={{ color: "var(--text-faint)", padding: "22px 10px", textAlign: "center" }}>
                       No failing documents detected in this range. Knowledge base healthy.
