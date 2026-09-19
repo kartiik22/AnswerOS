@@ -1,7 +1,11 @@
-import axios from "axios";
+﻿import axios from "axios";
+
+// Automatically use Vercel/Production URL or fallback to localhost for development
+const API_BASE_URL =
+  import.meta.env.VITE_API_BASE_URL || "https://answer-os-dusky.vercel.app";
 
 const API = axios.create({
-  baseURL: "http://localhost:8080",
+  baseURL: API_BASE_URL,
 });
 
 // Attach JWT token dynamically from localStorage
