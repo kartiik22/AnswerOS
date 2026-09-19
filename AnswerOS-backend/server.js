@@ -1,4 +1,4 @@
-require("dotenv").config();
+﻿require("dotenv").config();
 
 const express = require("express");
 const { connectDB } = require("./config/db");
@@ -22,14 +22,27 @@ app.use((req, res, next) => {
   next();
 });
 
-// Connect to MongoDB
-connectDB();
-
-// Start Kafka RAG Worker automatically in the background
-const { startWorker } = require("./workers/ragWorker");
-startWorker().catch((err) => {
-  console.error("Failed to start background RAG Worker:", err.message);
+// Root Health Check Route
+app.get("/", (req, res) => {
+  res.json({ status: "online", service: "AnswerOS API", timestamp: new Date().toISOString() });
 });
+
+// Connect to MongoDB safely
+connectDB().catch((err) => {
+  console.error("MongoDB connection warning:", err.message);
+});
+
+// Start Kafka RAG Worker in background if Kafka is configured
+if (process.env.KAFKA_BROKERS) {
+  try {
+    const { startWorker } = require("./workers/ragWorker");
+    startWorker().catch((err) => {
+      console.warn("RAG Worker warning:", err.message);
+    });
+  } catch (err) {
+    console.warn("Could not initialize worker:", err.message);
+  }
+}
 
 // Routes
 app.use("/auth", authRoutes); // Auth APIs: signup, login, me
@@ -37,6 +50,18 @@ app.use("/conversations", conversationRoutes); // Conversation, feedback & analy
 app.use("/documents", documentRoutes); // upload docs
 app.use("/chat", chatRoutes); // ask questions
 
-app.listen(process.env.PORT || 3000, () => {
-  console.log("Server running on port", process.env.PORT || 3000);
+// Global Error Handler
+app.use((err, req, res, next) => {
+  console.error("Unhandled API error:", err);
+  res.status(500).json({ error: err.message || "Internal Server Error" });
 });
+
+// Start listening if run directly (or export for serverless function runners)
+const PORT = process.env.PORT || 8080;
+if (process.env.NODE_ENV !== "test") {
+  app.listen(PORT, () => {
+    console.log("Server running on port", PORT);
+  });
+}
+
+module.exports = app;
