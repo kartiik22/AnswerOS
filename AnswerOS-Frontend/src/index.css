@@ -3677,3 +3677,34 @@ body {
     transform: translateY(0) scale(1);
   }
 }
+
+/* ==========================================================
+   WIDGET LOADER OVERLAYS & SPINNER ANIMATIONS
+   ========================================================== */
+.widget-loader-overlay {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  height: 100%;
+  width: 100%;
+  color: var(--text-dim-dash, #8b93a7);
+  font-size: 13px;
+  font-family: var(--font-mono-dash, monospace);
+  background: rgba(17, 22, 34, 0.4);
+  border-radius: 8px;
+}
+
+.spin-animation {
+  animation: widget-spin 1s linear infinite;
+}
+
+@keyframes widget-spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}

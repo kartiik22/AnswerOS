@@ -18,6 +18,7 @@ import {
 import { Line, Bar, Scatter, Doughnut } from "react-chartjs-2";
 import {
   LogOut,
+  Loader2,
   UploadCloud,
   FileText,
   Activity,
@@ -982,7 +983,19 @@ export default function AdminHomePage() {
           Live telemetry: <code>GET /conversations/analytics/daily</code> •{" "}
           <code>GET /conversations/analytics/failing-documents</code>
         </div>
+        <div className="foot-note">
+          Live telemetry: <code>GET /conversations/analytics/daily</code> •{" "}
+          <code>GET /conversations/analytics/failing-documents</code>
+        </div>
       </div>
+
+      {/* Floating Toast Notification */}
+      {toastMessage && (
+        <div className="floating-toast-notification">
+          <CheckCircle size={18} color="#4ade80" />
+          <span>{toastMessage}</span>
+        </div>
+      )}
     </div>
   );
 }
