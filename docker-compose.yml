@@ -1,0 +1,50 @@
+﻿version: '3.8'
+
+services:
+  # Backend API server (Express + MongoDB + Kafka + Cloudinary + Pinecone)
+  backend:
+    build:
+      context: ./AnswerOS-backend
+      dockerfile: Dockerfile
+    container_name: answeros-backend
+    ports:
+      - "8080:8080"
+    env_file:
+      - ./AnswerOS-backend/.env
+    restart: unless-stopped
+    networks:
+      - answeros-network
+
+  # RAG Background Worker (Kafka Consumer -> Text Chunking -> Pinecone)
+  rag-worker:
+    build:
+      context: ./AnswerOS-backend
+      dockerfile: Dockerfile
+    container_name: answeros-rag-worker
+    command: ["node", "workers/ragWorker.js"]
+    env_file:
+      - ./AnswerOS-backend/.env
+    restart: unless-stopped
+    depends_on:
+      - backend
+    networks:
+      - answeros-network
+
+  # Frontend Web Client (React + Vite served via Nginx)
+  frontend:
+    build:
+      context: ./AnswerOS-Frontend
+      dockerfile: Dockerfile
+    container_name: answeros-frontend
+    ports:
+      - "80:80"
+      - "5173:80"
+    restart: unless-stopped
+    depends_on:
+      - backend
+    networks:
+      - answeros-network
+
+networks:
+  answeros-network:
+    driver: bridge
