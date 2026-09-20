@@ -435,6 +435,7 @@ export default function AdminHomePage() {
             className="kpi-card ingestion-kpi-highlight radar-box-container kpi-col-2 custom-doc-upload-card"
             style={{
               "--glow": "rgba(94,234,212,0.22)",
+              overflow: "visible",
               border: "1px solid rgba(94,234,212,0.35)",
               position: "relative",
               cursor: "pointer",
@@ -451,7 +452,7 @@ export default function AdminHomePage() {
               <div className="kpi-label">
                 <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
                   <span style={{ color: "#5eead4", fontWeight: "700", fontSize: "14px" }}>
-                    Document Upload for RAG Knowledge Base
+                    Document Upload for RAG
                   </span>
                   <ExternalLink size={13} color="#5eead4" style={{ opacity: 0.7 }} />
                 </div>
@@ -460,7 +461,7 @@ export default function AdminHomePage() {
                 </span>
               </div>
               <div style={{ fontSize: "12px", color: "var(--text-dim-dash)", marginTop: "6px", lineHeight: "1.35" }}>
-                Upload documents directly to Cloudinary & stream to Kafka topic <code>docs.uploaded</code> with text chunking (~125 tokens) &amp; Pinecone vector embedding.
+                Stream documents to Kafka pipeline with auto-chunking & vector embedding.
               </div>
             </div>
 

@@ -1866,14 +1866,14 @@ body {
 
 .radar-square-pulse {
   position: absolute;
-  inset: -2px;
+  inset: -3px;
   border: 2px solid #5eead4;
   border-radius: 14px;
   pointer-events: none;
-  z-index: -1;
+  z-index: 10;
   opacity: 0;
   transform: scale(1);
-  animation: radarCardExpand 3s cubic-bezier(0.2, 0.8, 0.3, 1) infinite;
+  animation: radarCardExpand 2.8s cubic-bezier(0.16, 1, 0.3, 1) infinite;
 }
 
 .radar-square-pulse.r1 {
@@ -1881,52 +1881,66 @@ body {
 }
 
 .radar-square-pulse.r2 {
-  animation-delay: 1.5s;
+  animation-delay: 1.4s;
 }
 
 @keyframes radarCardExpand {
   0% {
-    transform: scale(1);
-    opacity: 0.8;
-    border-color: rgba(94, 234, 212, 0.85);
-    box-shadow: 0 0 12px rgba(94, 234, 212, 0.4);
+    transform: scale(0.99);
+    opacity: 0.95;
+    border-color: #5eead4;
+    box-shadow: 0 0 18px rgba(94, 234, 212, 0.7), inset 0 0 10px rgba(94, 234, 212, 0.3);
   }
-  50% {
-    opacity: 0.35;
+  40% {
+    opacity: 0.6;
+    border-color: rgba(94, 234, 212, 0.7);
   }
   100% {
-    transform: scale(1.06, 1.12);
+    transform: scale(1.05, 1.11);
     opacity: 0;
     border-color: rgba(94, 234, 212, 0);
-    box-shadow: 0 0 30px rgba(94, 234, 212, 0);
+    box-shadow: 0 0 32px rgba(94, 234, 212, 0);
   }
 }
 
-/* KAFKA ACTIVE Breathing Pulse Dot */
+/* KAFKA ACTIVE Radiant Pulse Radar Dot */
 .pulse-dot-mini {
-  width: 6px;
-  height: 6px;
+  width: 8px;
+  height: 8px;
   border-radius: 50%;
-  background: #4ade80;
+  background: #22c55e;
+  box-shadow: 0 0 8px #22c55e;
   display: inline-block;
   position: relative;
+  vertical-align: middle;
 }
 
+.pulse-dot-mini::before,
 .pulse-dot-mini::after {
   content: "";
   position: absolute;
-  inset: -3px;
+  inset: -4px;
   border-radius: 50%;
-  border: 1px solid #4ade80;
-  animation: miniDotPing 1.8s ease-out infinite;
+  border: 1.5px solid #22c55e;
+  animation: miniDotPing 2s cubic-bezier(0, 0, 0.2, 1) infinite;
+}
+
+.pulse-dot-mini::after {
+  animation-delay: 1s;
 }
 
 @keyframes miniDotPing {
-  0% { transform: scale(0.8); opacity: 0.8; }
-  100% { transform: scale(2.4); opacity: 0; }
+  0% {
+    transform: scale(0.8);
+    opacity: 1;
+    box-shadow: 0 0 6px rgba(34, 197, 94, 0.8);
+  }
+  100% {
+    transform: scale(2.8);
+    opacity: 0;
+    box-shadow: 0 0 16px rgba(34, 197, 94, 0);
+  }
 }
-
-/* Subtle Quiet Pulse Indicator for other KPI Cards */
 .pulse-dot-quiet {
   width: 5px;
   height: 5px;
@@ -3745,4 +3759,225 @@ body {
   font-size: 11.5px;
   color: var(--text-dim-dash, #94a3b8);
   letter-spacing: 0.04em;
+}
+
+
+/* ==========================================================
+   COMPREHENSIVE IPHONE & MOBILE RESPONSIVE ENGINE (375px - 768px)
+   ========================================================== */
+@media (max-width: 768px) {
+  /* Container & Layout resets */
+  html, body {
+    overflow-x: hidden !important;
+    width: 100% !important;
+    max-width: 100vw !important;
+  }
+
+  .admin-page-container,
+  .admin-ops-wrap {
+    width: 100% !important;
+    max-width: 100vw !important;
+    padding: 12px 14px !important;
+    box-sizing: border-box !important;
+    overflow-x: hidden !important;
+  }
+
+  .admin-shifted-down {
+    padding-top: 8px !important;
+  }
+
+  /* Top Navigation Bar */
+  .admin-top-navbar {
+    padding: 10px 14px !important;
+    height: auto !important;
+  }
+
+  .admin-nav-container {
+    flex-direction: column !important;
+    align-items: flex-start !important;
+    gap: 12px !important;
+    width: 100% !important;
+  }
+
+  .admin-nav-brand {
+    width: 100% !important;
+  }
+
+  .admin-nav-brand-text {
+    max-width: calc(100vw - 70px) !important;
+  }
+
+  .admin-nav-title {
+    font-size: 15px !important;
+    white-space: normal !important;
+    line-height: 1.25 !important;
+  }
+
+  .admin-nav-sub {
+    font-size: 11px !important;
+    white-space: normal !important;
+  }
+
+  .admin-nav-actions {
+    display: flex !important;
+    width: 100% !important;
+    gap: 8px !important;
+    justify-content: space-between !important;
+  }
+
+  .admin-nav-tab,
+  .admin-logout-nav-btn {
+    flex: 1 !important;
+    justify-content: center !important;
+    padding: 8px 10px !important;
+    font-size: 12px !important;
+  }
+
+  /* Top Controls & Status Bar */
+  .centered-dashboard-topbar {
+    flex-direction: column !important;
+    align-items: stretch !important;
+    gap: 12px !important;
+    padding-bottom: 12px !important;
+  }
+
+  .topbar-left-spacer {
+    display: none !important;
+  }
+
+  .topbar-center-group {
+    flex-direction: column !important;
+    align-items: stretch !important;
+    gap: 8px !important;
+    width: 100% !important;
+  }
+
+  .range-pills {
+    width: 100% !important;
+    display: flex !important;
+    justify-content: space-between !important;
+  }
+
+  .range-pills button {
+    flex: 1 !important;
+    text-align: center !important;
+    padding: 6px 0 !important;
+  }
+
+  .topbar-right-group {
+    width: 100% !important;
+    display: flex !important;
+    gap: 8px !important;
+  }
+
+  .topbar-right-group .icon-btn {
+    flex: 1 !important;
+    justify-content: center !important;
+  }
+
+  /* KPI Metrics Grid */
+  .admin-kpi-1080-grid {
+    grid-template-columns: 1fr !important;
+    gap: 14px !important;
+    margin-bottom: 16px !important;
+  }
+
+  .admin-kpi-1080-grid .kpi-col-2 {
+    grid-column: span 1 !important;
+  }
+
+  .admin-kpi-1080-grid .kpi-card {
+    height: auto !important;
+    min-height: 200px !important;
+    max-height: none !important;
+    padding: 16px !important;
+  }
+
+  /* Document Upload Card Form Elements */
+  .custom-doc-upload-card {
+    overflow: visible !important;
+  }
+
+  .custom-doc-upload-card form {
+    width: 100% !important;
+  }
+
+  .custom-doc-upload-card form > div {
+    flex-wrap: wrap !important;
+  }
+
+  /* Chart Boxes & Grids */
+  .grid-2 {
+    grid-template-columns: 1fr !important;
+    gap: 14px !important;
+  }
+
+  .panel {
+    padding: 14px !important;
+    margin-bottom: 14px !important;
+    max-width: 100% !important;
+    box-sizing: border-box !important;
+  }
+
+  .panel-head {
+    flex-direction: column !important;
+    align-items: flex-start !important;
+    gap: 8px !important;
+  }
+
+  .chart-box {
+    height: 250px !important;
+    min-height: 250px !important;
+  }
+
+  /* Tables with smooth horizontal touch swipe on iPhone */
+  .tbl-wrap,
+  .table-responsive {
+    width: 100% !important;
+    overflow-x: auto !important;
+    -webkit-overflow-scrolling: touch !important;
+  }
+
+  .tbl {
+    min-width: 580px !important;
+  }
+
+  /* User Chat Page Mobile Adaptations */
+  .chat-container,
+  .chat-wrapper {
+    width: 100% !important;
+    height: calc(100vh - 60px) !important;
+    padding: 8px !important;
+  }
+
+  .chat-input-bar {
+    padding: 8px !important;
+  }
+
+  /* Dedicated Studio Page Mobile Adaptations */
+  .upload-studio-container,
+  .studio-content-wrap {
+    padding: 12px !important;
+    width: 100% !important;
+    max-width: 100vw !important;
+  }
+
+  .studio-split-view {
+    flex-direction: column !important;
+  }
+}
+
+@media (max-width: 480px) {
+  .admin-nav-title {
+    font-size: 14px !important;
+  }
+
+  .admin-kpi-1080-grid .kpi-card {
+    padding: 14px !important;
+  }
+
+  .chart-box {
+    height: 220px !important;
+    min-height: 220px !important;
+  }
 }
