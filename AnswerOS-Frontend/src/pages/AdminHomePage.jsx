@@ -193,7 +193,7 @@ export default function AdminHomePage() {
   const commonScales = {
     x: {
       grid: { color: gridColor, drawTicks: false },
-      ticks: { color: tickColor, font: { family: "IBM Plex Mono", size: 10 }, maxRotation: 0, autoSkip: true, maxTicksLimit: 8 },
+      ticks: { color: tickColor, font: { family: "IBM Plex Mono", size: 9 }, maxRotation: 0, autoSkip: true, maxTicksLimit: 5 },
       border: { color: "rgba(255,255,255,0.08)" },
     },
     y: {
@@ -843,17 +843,17 @@ export default function AdminHomePage() {
               </div>
             </div>
             <div className="chart-box">
-              <Scatter
+              {loading ? <MovingWheelLoader size="lg" label="Correlating CSAT with reports..." /> : <Scatter
                 data={satData}
                 options={{
                   responsive: true,
                   maintainAspectRatio: false,
                   scales: {
-                    x: { ...commonScales.x, ticks: { ...commonScales.x.ticks, callback: (v) => labels[v] || "" } },
+                    x: { ...commonScales.x, ticks: { ...commonScales.x.ticks, maxTicksLimit: 5, callback: (v) => labels[v] || "" } },
                     y: { ...commonScales.y, min: 1, max: 5 },
                   },
                 }}
-              />
+              />}
             </div>
           </div>
 
