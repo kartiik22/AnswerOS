@@ -1,5 +1,6 @@
 const mongoose = require("mongoose");
 const logger = require("../config/logger");
+const { connectDB } = require("../config/db");
 const { Conversation, Message, Feedback, AnalyticsDaily, DocumentAnalytics } = require("../models");
 
 // Get today's date in YYYY-MM-DD format
@@ -17,6 +18,18 @@ function mongoDiagnostics() {
     name: mongoose.connection.name || null,
     hasMongoUri: Boolean(process.env.MONGODB_URI),
   };
+}
+
+/** Wait for Mongo on cold starts instead of aborting while readyState=2. */
+async function ensureMongoReady(endpoint) {
+  const before = mongoDiagnostics();
+  if (before.readyState === 1) return before;
+
+  logger.api(`${endpoint} awaiting MongoDB…`, JSON.stringify(before));
+  await connectDB();
+  const after = mongoDiagnostics();
+  logger.api(`${endpoint} MongoDB ready`, JSON.stringify(after));
+  return after;
 }
 
 function logAnalyticsError(endpoint, req, err) {
@@ -254,26 +267,13 @@ async function submitFeedback(req, res) {
 async function getDailyAnalytics(req, res) {
   const endpoint = "GET /conversations/analytics/daily";
   try {
-    const mongo = mongoDiagnostics();
-    logger.api(`${endpoint} start`, JSON.stringify({ userId: req.user?.id, mongo }));
-
-    if (mongo.readyState !== 1) {
-      logger.error(
-        "ANALYTICS",
-        `${endpoint} aborted — MongoDB not connected`,
-        JSON.stringify(mongo)
-      );
-      return res.status(503).json({
-        error: "Database unavailable",
-        endpoint,
-        mongo,
-      });
-    }
+    logger.api(`${endpoint} start`, JSON.stringify({ userId: req.user?.id, mongo: mongoDiagnostics() }));
+    await ensureMongoReady(endpoint);
 
     const analytics = await AnalyticsDaily.find().sort({ date: -1 }).limit(30);
     logger.api(
       `${endpoint} ok`,
-      JSON.stringify({ count: analytics.length, userId: req.user?.id })
+      JSON.stringify({ count: analytics.length, userId: req.user?.id, mongo: mongoDiagnostics() })
     );
     res.json({ ok: true, analytics });
   } catch (err) {
@@ -285,28 +285,15 @@ async function getDailyAnalytics(req, res) {
 async function getFailingDocuments(req, res) {
   const endpoint = "GET /conversations/analytics/failing-documents";
   try {
-    const mongo = mongoDiagnostics();
-    logger.api(`${endpoint} start`, JSON.stringify({ userId: req.user?.id, mongo }));
-
-    if (mongo.readyState !== 1) {
-      logger.error(
-        "ANALYTICS",
-        `${endpoint} aborted — MongoDB not connected`,
-        JSON.stringify(mongo)
-      );
-      return res.status(503).json({
-        error: "Database unavailable",
-        endpoint,
-        mongo,
-      });
-    }
+    logger.api(`${endpoint} start`, JSON.stringify({ userId: req.user?.id, mongo: mongoDiagnostics() }));
+    await ensureMongoReady(endpoint);
 
     const failingDocs = await DocumentAnalytics.find({ failureScore: { $gt: 0 } })
       .sort({ failureScore: -1 })
       .limit(50);
     logger.api(
       `${endpoint} ok`,
-      JSON.stringify({ count: failingDocs.length, userId: req.user?.id })
+      JSON.stringify({ count: failingDocs.length, userId: req.user?.id, mongo: mongoDiagnostics() })
     );
     res.json({ ok: true, failingDocs });
   } catch (err) {

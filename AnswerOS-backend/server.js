@@ -27,9 +27,29 @@ app.get("/", (req, res) => {
   res.json({ status: "online", service: "AnswerOS API", timestamp: new Date().toISOString() });
 });
 
-// Connect to MongoDB safely
+// Kick off Mongo connect early (warm path). Handlers still await connectDB()
+// so cold starts don't race ahead of readyState=1.
 connectDB().catch((err) => {
   console.error("MongoDB connection warning:", err.message);
+});
+
+// Ensure DB is ready before any API that needs it (fixes Vercel readyState=2 races)
+app.use(async (req, res, next) => {
+  if (req.method === "OPTIONS" || req.path === "/") return next();
+  try {
+    await connectDB();
+    next();
+  } catch (err) {
+    console.error("DB middleware failed:", err.message);
+    res.status(503).json({
+      error: "Database unavailable",
+      message: err.message,
+      mongo: {
+        readyState: require("mongoose").connection.readyState,
+        hasMongoUri: Boolean(process.env.MONGODB_URI),
+      },
+    });
+  }
 });
 
 // Start Kafka RAG Worker in background if Kafka is configured
