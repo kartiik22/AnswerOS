@@ -1,8 +1,65 @@
+const mongoose = require("mongoose");
+const logger = require("../config/logger");
 const { Conversation, Message, Feedback, AnalyticsDaily, DocumentAnalytics } = require("../models");
 
 // Get today's date in YYYY-MM-DD format
 function getTodayString() {
   return new Date().toISOString().split("T")[0];
+}
+
+function mongoDiagnostics() {
+  const stateMap = { 0: "disconnected", 1: "connected", 2: "connecting", 3: "disconnecting" };
+  const readyState = mongoose.connection.readyState;
+  return {
+    readyState,
+    readyStateLabel: stateMap[readyState] || `unknown(${readyState})`,
+    host: mongoose.connection.host || null,
+    name: mongoose.connection.name || null,
+    hasMongoUri: Boolean(process.env.MONGODB_URI),
+  };
+}
+
+function logAnalyticsError(endpoint, req, err) {
+  const mongo = mongoDiagnostics();
+  const payload = {
+    endpoint,
+    method: req.method,
+    path: req.originalUrl || req.url,
+    userId: req.user?.id || null,
+    role: req.user?.role || null,
+    mongo,
+    error: {
+      name: err?.name,
+      message: err?.message,
+      code: err?.code,
+      codeName: err?.codeName,
+      errno: err?.errno,
+      syscall: err?.syscall,
+      stack: err?.stack,
+    },
+  };
+  logger.error(
+    "ANALYTICS",
+    `${endpoint} failed`,
+    JSON.stringify(payload, null, 2)
+  );
+  // Also print raw stack separately so Vercel log search catches it
+  if (err?.stack) {
+    console.error(`[ANALYTICS] ${endpoint} stack:\n${err.stack}`);
+  }
+  return payload;
+}
+
+function analyticsErrorResponse(endpoint, req, err) {
+  const details = logAnalyticsError(endpoint, req, err);
+  return {
+    error: err?.message || "Internal Server Error",
+    endpoint,
+    name: err?.name || "Error",
+    code: err?.code ?? null,
+    codeName: err?.codeName ?? null,
+    mongo: details.mongo,
+  };
 }
 
 // POST /conversations/start - Start a new conversation
@@ -195,23 +252,65 @@ async function submitFeedback(req, res) {
 
 // GET /conversations/analytics/daily - Get daily metrics (Admin or general)
 async function getDailyAnalytics(req, res) {
+  const endpoint = "GET /conversations/analytics/daily";
   try {
+    const mongo = mongoDiagnostics();
+    logger.api(`${endpoint} start`, JSON.stringify({ userId: req.user?.id, mongo }));
+
+    if (mongo.readyState !== 1) {
+      logger.error(
+        "ANALYTICS",
+        `${endpoint} aborted — MongoDB not connected`,
+        JSON.stringify(mongo)
+      );
+      return res.status(503).json({
+        error: "Database unavailable",
+        endpoint,
+        mongo,
+      });
+    }
+
     const analytics = await AnalyticsDaily.find().sort({ date: -1 }).limit(30);
+    logger.api(
+      `${endpoint} ok`,
+      JSON.stringify({ count: analytics.length, userId: req.user?.id })
+    );
     res.json({ ok: true, analytics });
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    res.status(500).json(analyticsErrorResponse(endpoint, req, err));
   }
 }
 
 // GET /conversations/analytics/failing-documents - Get failing documents
 async function getFailingDocuments(req, res) {
+  const endpoint = "GET /conversations/analytics/failing-documents";
   try {
+    const mongo = mongoDiagnostics();
+    logger.api(`${endpoint} start`, JSON.stringify({ userId: req.user?.id, mongo }));
+
+    if (mongo.readyState !== 1) {
+      logger.error(
+        "ANALYTICS",
+        `${endpoint} aborted — MongoDB not connected`,
+        JSON.stringify(mongo)
+      );
+      return res.status(503).json({
+        error: "Database unavailable",
+        endpoint,
+        mongo,
+      });
+    }
+
     const failingDocs = await DocumentAnalytics.find({ failureScore: { $gt: 0 } })
       .sort({ failureScore: -1 })
       .limit(50);
+    logger.api(
+      `${endpoint} ok`,
+      JSON.stringify({ count: failingDocs.length, userId: req.user?.id })
+    );
     res.json({ ok: true, failingDocs });
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    res.status(500).json(analyticsErrorResponse(endpoint, req, err));
   }
 }
 
